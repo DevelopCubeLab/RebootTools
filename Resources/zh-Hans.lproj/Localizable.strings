@@ -1,0 +1,5 @@
+"CFBundleDisplayName" = "重启工具";
+"Install_With_TrollStore_text" = "已经通过TrollStore安装";
+"Need_Install_With_TrollStore_text" = "需要使用TrollStore安装";
+"Reboot_Device_text" = "重启设备";
+"Show_Alert_Before_Starting_text" = "开始操作前显示提醒";

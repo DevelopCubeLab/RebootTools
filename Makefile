@@ -1,3 +1,5 @@
+TARGET = iOS
+ARCHS := arm64
 TARGET = iphone:clang:latest:14.0
 INSTALL_TARGET_PROCESSES = RebootTools
 
@@ -10,6 +12,9 @@ RebootTools_FRAMEWORKS = UIKit CoreGraphics
 RebootTools_RESOURCES = Resources/Assets.xcassets
 
 include $(THEOS_MAKE_PATH)/application.mk
+
+$(APPLICATION_NAME)_CODESIGN_FLAGS = -Sentitlements.plist
+
 SUBPROJECTS += RebootRootHelper
 include $(THEOS_MAKE_PATH)/aggregate.mk
 
