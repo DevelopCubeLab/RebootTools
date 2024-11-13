@@ -42,9 +42,22 @@ class RootViewController: UIViewController {
         }
 
         // 重启按钮
-        let rebootButton = UIButton()
-        rebootButton.setTitle(NSLocalizedString("Reboot_Device_text", comment: ""), for: .normal)
+        let rebootButton = UIButton(type: .system)
+        if #available(iOS 15.0, *) {
+			rebootButton.configuration = .filled()
+			rebootButton.setTitle(NSLocalizedString("Reboot_Device_text", comment: ""), for: .normal)
+		} else {
+			// iOS 14 及以下版本 没这效果只能硬凑了
+			rebootButton.backgroundColor = UIColor.systemBlue
+            rebootButton.layer.cornerRadius = 8
+            rebootButton.clipsToBounds = true
+            rebootButton.setTitle(NSLocalizedString("Reboot_Device_text", comment: ""), for: .normal)
+            rebootButton.setTitleColor(.white, for: .normal)
+		}
+
         rebootButton.translatesAutoresizingMaskIntoConstraints = false
+        // 添加点击事件
+        rebootButton.addTarget(self, action: #selector(onClickRebootButton), for: .touchUpInside)
 
         // 添加设置项
         let showAlertSwitch = UISwitch()
@@ -61,6 +74,8 @@ class RootViewController: UIViewController {
         // 将开关和标签添加到子视图中
         showAlertSubView.addSubview(showAlertLabel)
         showAlertSubView.addSubview(showAlertSwitch)
+        // TODO 暂时隐藏 后期直接整合到设置项里
+        showAlertSubView.isHidden = true
 
 		// 向View中添加控件
         self.view.addSubview(iconImageView)
@@ -82,9 +97,10 @@ class RootViewController: UIViewController {
             checkPermissionLabel.trailingAnchor.constraint(equalTo: self.view.trailingAnchor, constant: -20), // 右侧边距
 
             rebootButton.centerXAnchor.constraint(equalTo: self.view.centerXAnchor), // 水平居中
+            rebootButton.heightAnchor.constraint(equalToConstant: 50),
             rebootButton.topAnchor.constraint(equalTo: checkPermissionLabel.bottomAnchor, constant: 30),
-            rebootButton.leadingAnchor.constraint(equalTo: self.view.leadingAnchor, constant: 20), // 左侧边距
-            rebootButton.trailingAnchor.constraint(equalTo: self.view.trailingAnchor, constant: -20), // 右侧边距
+            rebootButton.leadingAnchor.constraint(equalTo: self.view.leadingAnchor, constant: 50), // 左侧边距
+            rebootButton.trailingAnchor.constraint(equalTo: self.view.trailingAnchor, constant: -50), // 右侧边距
 
 			showAlertSubView.centerXAnchor.constraint(equalTo: self.view.centerXAnchor),
             showAlertSubView.topAnchor.constraint(equalTo: rebootButton.bottomAnchor, constant: 30),
@@ -106,6 +122,11 @@ class RootViewController: UIViewController {
         let path = "/var/mobile/Library/Preferences"
         let writeable = access(path, W_OK) == 0
         return writeable
+    }
+
+    @objc func onClickRebootButton() {
+        let deviceController = DeviceController()
+        deviceController.rebootDevice()
     }
 }
 
