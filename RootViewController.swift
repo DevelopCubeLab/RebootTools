@@ -58,30 +58,23 @@ class RootViewController: UIViewController {
         rebootButton.translatesAutoresizingMaskIntoConstraints = false
         // 添加点击事件
         rebootButton.addTarget(self, action: #selector(onClickRebootButton), for: .touchUpInside)
+        rebootButton.isEnabled = enable // 无权限的时候不允许点击
 
+        // Respring
+        let respringButton = UIButton(type: .system)
+        respringButton.setTitle(NSLocalizedString("Respring_text", comment: ""), for: .normal)
+        respringButton.translatesAutoresizingMaskIntoConstraints = false
+        respringButton.addTarget(self, action: #selector(onClickRespringButton), for: .touchUpInside)
+        respringButton.isEnabled = enable // 无权限的时候不允许点击
+        
         // 添加设置项
-        let showAlertSwitch = UISwitch()
-        showAlertSwitch.translatesAutoresizingMaskIntoConstraints = false
-
-        let showAlertLabel = UILabel()
-        showAlertLabel.text = NSLocalizedString("Show_Alert_Before_Starting_text", comment: "")
-        showAlertLabel.textColor = UIColor.label
-        showAlertLabel.translatesAutoresizingMaskIntoConstraints = false
-
-		// 添加子视图
-        let showAlertSubView = UIView()
-        showAlertSubView.translatesAutoresizingMaskIntoConstraints = false
-        // 将开关和标签添加到子视图中
-        showAlertSubView.addSubview(showAlertLabel)
-        showAlertSubView.addSubview(showAlertSwitch)
-        // TODO 暂时隐藏 后期直接整合到设置项里
-        showAlertSubView.isHidden = true
+        let settingButton = UIButton(type: .system)
 
 		// 向View中添加控件
         self.view.addSubview(iconImageView)
         self.view.addSubview(checkPermissionLabel)
         self.view.addSubview(rebootButton)
-        self.view.addSubview(showAlertSubView)
+        self.view.addSubview(respringButton)
 
 
         // AutoLayout
@@ -102,19 +95,11 @@ class RootViewController: UIViewController {
             rebootButton.leadingAnchor.constraint(equalTo: self.view.leadingAnchor, constant: 50), // 左侧边距
             rebootButton.trailingAnchor.constraint(equalTo: self.view.trailingAnchor, constant: -50), // 右侧边距
 
-			showAlertSubView.centerXAnchor.constraint(equalTo: self.view.centerXAnchor),
-            showAlertSubView.topAnchor.constraint(equalTo: rebootButton.bottomAnchor, constant: 30),
-			// 动态设置容器的宽度和高度
-            showAlertSubView.leadingAnchor.constraint(equalTo: showAlertLabel.leadingAnchor),
-            showAlertSubView.trailingAnchor.constraint(equalTo: showAlertSwitch.trailingAnchor),
-            showAlertSubView.heightAnchor.constraint(equalTo: showAlertSwitch.heightAnchor),
-            // 标签和开关在容器中水平排列
-            showAlertLabel.leadingAnchor.constraint(equalTo: showAlertSubView.leadingAnchor),
-            showAlertLabel.centerYAnchor.constraint(equalTo: showAlertSubView.centerYAnchor),
-
-            showAlertSwitch.leadingAnchor.constraint(equalTo: showAlertLabel.trailingAnchor, constant: 10),
-            showAlertSwitch.centerYAnchor.constraint(equalTo: showAlertSubView.centerYAnchor),
-            showAlertSwitch.trailingAnchor.constraint(equalTo: showAlertSubView.trailingAnchor)
+            respringButton.centerXAnchor.constraint(equalTo: self.view.centerXAnchor), // 水平居中
+            respringButton.heightAnchor.constraint(equalToConstant: 50),
+            respringButton.topAnchor.constraint(equalTo: rebootButton.bottomAnchor, constant: 20),
+            respringButton.leadingAnchor.constraint(equalTo: self.view.leadingAnchor, constant: 50), // 左侧边距
+            respringButton.trailingAnchor.constraint(equalTo: self.view.trailingAnchor, constant: -50) // 右侧边距
         ])
     }
 
@@ -127,6 +112,11 @@ class RootViewController: UIViewController {
     @objc func onClickRebootButton() {
         let deviceController = DeviceController()
         deviceController.rebootDevice()
+    }
+    
+    @objc func onClickRespringButton() {
+        let deviceController = DeviceController()
+        deviceController.respring()
     }
 }
 
