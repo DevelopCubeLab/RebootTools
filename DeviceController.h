@@ -3,5 +3,6 @@
 @interface DeviceController : NSObject
 
 - (BOOL) RebootDevice;
+- (void) Respring;
 
 @end
