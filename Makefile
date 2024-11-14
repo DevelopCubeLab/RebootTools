@@ -20,4 +20,4 @@ include $(THEOS_MAKE_PATH)/aggregate.mk
 
 after-package::
 	@echo "Renaming .ipa to .tipa..."
-	@mv ./packages/com.developlab.RebootTools_1.0.ipa ./packages/com.developlab.RebootTools_1.0.tipa || echo "No .ipa file found."
+	@mv ./packages/com.developlab.RebootTools_1.1.ipa ./packages/com.developlab.RebootTools_1.1.tipa || echo "No .ipa file found."
