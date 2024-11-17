@@ -3,4 +3,17 @@
 "Need_Install_With_TrollStore_text" = "需要使用TrollStore安装";
 "Reboot_Device_text" = "重启设备";
 "Respring_text" = "注销";
+"Settings_text" = "设置";
+"Done_text" = "完成";
+"General_text" = "通用";
+"Timer_text" = "计时器";
+"About_text" = "关于";
+"Enable_Function_text" = "启用的功能";
+"Home_Screen_Quick_Actions_text" = "图标快捷方式";
+"Display_Root_Permission_text" = "显示已获得Root授权提示";
+"Enable_text" = "启用";
+"Time_text" = "时间";
+"Action_text" = "执行的操作";
 "Show_Alert_Before_Starting_text" = "开始操作前显示提醒";
+"Version_text" = "版本";
+"Unknown_text" = "未知";

@@ -3,4 +3,17 @@
 "Need_Install_With_TrollStore_text" = "Requires TrollStore installation";
 "Reboot_Device_text" = "Reboot Device";
 "Respring_text" = "Respring";
+"Settings_text" = "Settings";
+"Done_text" = "Done";
+"General_text" = "General";
+"Timer_text" = "Timer";
+"About_text" = "About";
+"Enable_Function_text" = "Enable function";
+"Home_Screen_Quick_Actions_text" = "Home Screen quick actions";
+"Display_Root_Permission_text" = "Show root permission has been obtained text";
+"Enable_text" = "Enable";
+"Time_text" = "Time";
+"Action_text" = "Action";
 "Show_Alert_Before_Starting_text" = "Show alert before starting";
+"Version_text" = "Version";
+"Unknown_text" = "Unknown";

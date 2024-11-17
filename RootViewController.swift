@@ -31,7 +31,7 @@ class RootViewController: UIViewController {
         checkPermissionLabel.translatesAutoresizingMaskIntoConstraints = false
         checkPermissionLabel.textAlignment = .center  // 设置文本居中
 
-        var enable = self.checkInstallPermission()
+        let enable = self.checkInstallPermission()
 
         if(enable) {
             checkPermissionLabel.text = NSLocalizedString("Install_With_TrollStore_text", comment: "")
@@ -68,14 +68,22 @@ class RootViewController: UIViewController {
         respringButton.isEnabled = enable // 无权限的时候不允许点击
         
         // 添加设置项
-        let settingButton = UIButton(type: .system)
+        let settingsButton = UIButton(type: .system)
+        settingsButton.setTitle(NSLocalizedString("Settings_text", comment: ""), for: .normal)
+        settingsButton.translatesAutoresizingMaskIntoConstraints = false
+        settingsButton.addTarget(self, action: #selector(onClickSettingsButton), for: .touchUpInside)
+        // 设置图标
+        let settingsButtonIcon = UIImage(systemName: "gearshape")
+        settingsButton.setImage(settingsButtonIcon, for: .normal)
+        // 调整图标和文本之间的间距
+        settingsButton.imageEdgeInsets = UIEdgeInsets(top: 0, left: -5, bottom: 0, right: 0)
 
 		// 向View中添加控件
         self.view.addSubview(iconImageView)
         self.view.addSubview(checkPermissionLabel)
         self.view.addSubview(rebootButton)
         self.view.addSubview(respringButton)
-
+        self.view.addSubview(settingsButton)
 
         // AutoLayout
         NSLayoutConstraint.activate([
@@ -99,7 +107,13 @@ class RootViewController: UIViewController {
             respringButton.heightAnchor.constraint(equalToConstant: 50),
             respringButton.topAnchor.constraint(equalTo: rebootButton.bottomAnchor, constant: 20),
             respringButton.leadingAnchor.constraint(equalTo: self.view.leadingAnchor, constant: 50), // 左侧边距
-            respringButton.trailingAnchor.constraint(equalTo: self.view.trailingAnchor, constant: -50) // 右侧边距
+            respringButton.trailingAnchor.constraint(equalTo: self.view.trailingAnchor, constant: -50), // 右侧边距
+
+			settingsButton.centerXAnchor.constraint(equalTo: self.view.centerXAnchor), // 水平居中
+            settingsButton.heightAnchor.constraint(equalToConstant: 50),
+            settingsButton.topAnchor.constraint(equalTo: respringButton.bottomAnchor, constant: 30),
+            settingsButton.leadingAnchor.constraint(equalTo: self.view.leadingAnchor, constant: 50), // 左侧边距
+            settingsButton.trailingAnchor.constraint(equalTo: self.view.trailingAnchor, constant: -50) // 右侧边距
         ])
     }
 
@@ -117,6 +131,27 @@ class RootViewController: UIViewController {
     @objc func onClickRespringButton() {
         let deviceController = DeviceController()
         deviceController.respring()
+    }
+
+    @objc func onClickSettingsButton() {
+		let settingsViewController = SettingsViewController()
+        // 嵌入到导航控制器
+        let navController = UINavigationController(rootViewController: settingsViewController)
+        // 设置导航栏完成按钮
+        let doneButton = UIBarButtonItem(title: NSLocalizedString("Done_text", comment: ""), style: .done, target: self, action: #selector(onClickDoneButton))
+        settingsViewController.navigationItem.rightBarButtonItem = doneButton
+        // 设置模态视图的显示样式
+        navController.modalPresentationStyle = .pageSheet
+        navController.modalTransitionStyle = .coverVertical
+
+        // 显示带导航栏的 SettingsViewController
+        present(navController, animated: true, completion: nil)
+
+	}
+
+	@objc func onClickDoneButton() {
+        // 关闭模态视图
+        dismiss(animated: true, completion: nil)
     }
 }
 
