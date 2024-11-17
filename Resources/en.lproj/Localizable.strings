@@ -5,6 +5,8 @@
 "Respring_text" = "Respring";
 "Settings_text" = "Settings";
 "Done_text" = "Done";
+"Action_Alert" = "Are you sure you want to %@?";
+"Confirm_text" = "Confirm";
 "Cancel_text" = "Cancel";
 "General_text" = "General";
 "Timer_text" = "Timer";

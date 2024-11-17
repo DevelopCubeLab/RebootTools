@@ -9,6 +9,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 		window = UIWindow(frame: UIScreen.main.bounds)
 		window!.rootViewController = UINavigationController(rootViewController: RootViewController())
 		window!.makeKeyAndVisible()
+        // 加载配置文件
+        SettingsUtils.instance
 		return true
 	}
 

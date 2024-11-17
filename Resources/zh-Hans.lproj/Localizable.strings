@@ -5,6 +5,8 @@
 "Respring_text" = "注销";
 "Settings_text" = "设置";
 "Done_text" = "完成";
+"Action_Alert" = "确定%@?";
+"Confirm_text" = "确定";
 "Cancel_text" = "取消";
 "General_text" = "通用";
 "Timer_text" = "倒计时器";
