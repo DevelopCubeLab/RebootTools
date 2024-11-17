@@ -3,31 +3,50 @@ import Foundation
 class PlistManagerUtils {
 
     // 单例实例
-    static let shared = PlistManager(plistName: "userSettings")
+    private static var instances: [String: PlistManagerUtils] = [:]
 
     private var plistFileURL: URL
+    private var plistExist: Bool = false
     private var preferences: [String: Any]
     private var cachedChanges: [String: Any] = [:]
     private var isDirty = false
+
+	// 获取实例方法（支持多实例）
+    static func instance(for plistName: String) -> PlistManagerUtils {
+        // 如果实例已存在，则返回现有实例
+        if let instance = instances[plistName] {
+            return instance
+        }
+
+        // 否则创建新的实例并存储
+        let instance = PlistManagerUtils(plistName: plistName)
+        instances[plistName] = instance
+        return instance
+    }
 
     // 初始化 PlistManager，指定 plist 文件名
     private init(plistName: String) {
         // 获取沙盒中的 Preferences 目录路径
         let preferencesDirectory = FileManager.default.urls(for: .libraryDirectory, in: .userDomainMask).first!
-        self.plistFileURL = preferencesDirectory.appendingPathComponent("Preferences/\(plistName).plist")
+        let preferencesPath = preferencesDirectory.appendingPathComponent("Preferences")
+        self.plistFileURL = preferencesPath.appendingPathComponent("\(plistName).plist")
 
         // 如果 plist 文件不存在，则创建一个空的文件
         if !FileManager.default.fileExists(atPath: plistFileURL.path) {
             preferences = [:]
             save()
+            NSLog("Reboot Tools----> 创建配置文件")
+            plistExist = false //增加一个标识，让外界知道这个配置文件是新创建的
         } else {
-            preferences = loadPreferences()
+            self.preferences = PlistManagerUtils.loadPreferences(from: plistFileURL)
+            NSLog("Reboot Tools----> 加载已有创建文件")
+            plistExist = true
         }
     }
 
     // 加载 plist 文件中的数据
-    private func loadPreferences() -> [String: Any] {
-        guard let data = try? Data(contentsOf: plistFileURL),
+    private static func loadPreferences(from url: URL) -> [String: Any] {
+        guard let data = try? Data(contentsOf: url),
               let preferences = try? PropertyListSerialization.propertyList(from: data, options: [], format: nil) as? [String: Any] else {
             return [:]
         }
@@ -39,53 +58,60 @@ class PlistManagerUtils {
         do {
             let data = try PropertyListSerialization.data(fromPropertyList: preferences, format: .xml, options: 0)
             try data.write(to: plistFileURL)
+            NSLog("Reboot Tools----> Save successful Plist file path: \(plistFileURL.path)")
         } catch {
-            print("Error saving preferences to plist: \(error.localizedDescription)")
+            print("Reboot Tools----> Error saving preferences to plist: \(error.localizedDescription)")
         }
     }
+    
+
+    // 获取 plist 文件是否存在
+    func isPlistExist() -> Bool {
+		return plistExist
+	}
 
     // 获取指定 key 对应的 Int 值
-    func getInt(forKey key: String, defaultValue: Int) -> Int {
+    func getInt(key: String, defaultValue: Int) -> Int {
         return preferences[key] as? Int ?? defaultValue
     }
 
     // 获取指定 key 对应的 Bool 值
-    func getBool(forKey key: String, defaultValue: Bool) -> Bool {
+    func getBool(key: String, defaultValue: Bool) -> Bool {
         return preferences[key] as? Bool ?? defaultValue
     }
 
     // 获取指定 key 对应的 String 值
-    func getString(forKey key: String, defaultValue: String) -> String {
+    func getString(key: String, defaultValue: String) -> String {
         return preferences[key] as? String ?? defaultValue
     }
 
     // 获取指定 key 对应的 Float 值
-    func getFloat(forKey key: String, defaultValue: Float) -> Float {
+    func getFloat(key: String, defaultValue: Float) -> Float {
         return preferences[key] as? Float ?? defaultValue
     }
 
     // 获取指定 key 对应的 Double 值
-    func getDouble(forKey key: String, defaultValue: Double) -> Double {
+    func getDouble(key: String, defaultValue: Double) -> Double {
         return preferences[key] as? Double ?? defaultValue
     }
 
     // 获取指定 key 对应的 Data 值
-    func getData(forKey key: String, defaultValue: Data) -> Data {
+    func getData(key: String, defaultValue: Data) -> Data {
         return preferences[key] as? Data ?? defaultValue
     }
 
     // 获取指定 key 对应的 URL 值
-    func getURL(forKey key: String, defaultValue: URL) -> URL {
+    func getURL(key: String, defaultValue: URL) -> URL {
         return preferences[key] as? URL ?? defaultValue
     }
 
     // 获取指定 key 对应的 Array 值
-    func getArray(forKey key: String, defaultValue: [Any]) -> [Any] {
+    func getArray(key: String, defaultValue: [Any]) -> [Any] {
         return preferences[key] as? [Any] ?? defaultValue
     }
 
     // 获取指定 key 对应的 Dictionary 值
-    func getDictionary(forKey key: String, defaultValue: [String: Any]) -> [String: Any] {
+    func getDictionary(key: String, defaultValue: [String: Any]) -> [String: Any] {
         return preferences[key] as? [String: Any] ?? defaultValue
     }
 
@@ -144,7 +170,7 @@ class PlistManagerUtils {
     }
 
     // 删除指定 key 的数据
-    func remove(forKey key: String) {
+    func remove(key: String) {
         cachedChanges[key] = nil
         isDirty = true
     }
@@ -155,8 +181,12 @@ class PlistManagerUtils {
             try FileManager.default.removeItem(at: plistFileURL)
             preferences = [:]
         } catch {
-            print("Error clearing plist file: \(error.localizedDescription)")
+            print("Reboot Tools----> Error clearing plist file: \(error.localizedDescription)")
         }
+    }
+
+    func commit() {
+        self.apply()
     }
 
     // 将更改保存到 plist
@@ -176,4 +206,5 @@ class PlistManagerUtils {
             isDirty = false
         }
     }
+
 }

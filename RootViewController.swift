@@ -2,6 +2,10 @@ import UIKit
 
 class RootViewController: UIViewController {
 
+	private let settingsUtils = SettingsUtils.instance
+    private let checkPermissionLabel = UILabel()
+    private let respringButton = UIButton(type: .system)
+
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -30,9 +34,9 @@ class RootViewController: UIViewController {
         iconImageView.contentMode = .scaleAspectFit
 
         // 检查权限
-        let checkPermissionLabel = UILabel()
         checkPermissionLabel.translatesAutoresizingMaskIntoConstraints = false
         checkPermissionLabel.textAlignment = .center  // 设置文本居中
+        checkPermissionLabel.isHidden = !settingsUtils.getShowRootText()
 
         let enable = self.checkInstallPermission()
 
@@ -64,11 +68,11 @@ class RootViewController: UIViewController {
         rebootButton.isEnabled = enable // 无权限的时候不允许点击
 
         // Respring
-        let respringButton = UIButton(type: .system)
         respringButton.setTitle(NSLocalizedString("Respring_text", comment: ""), for: .normal)
         respringButton.translatesAutoresizingMaskIntoConstraints = false
         respringButton.addTarget(self, action: #selector(onClickRespringButton), for: .touchUpInside)
         respringButton.isEnabled = enable // 无权限的时候不允许点击
+        respringButton.isHidden = !settingsUtils.getEnableRespringFunction()
         
         // 添加设置项
         let settingsButton = UIButton(type: .system)
@@ -118,6 +122,7 @@ class RootViewController: UIViewController {
             settingsButton.leadingAnchor.constraint(equalTo: self.view.leadingAnchor, constant: 50), // 左侧边距
             settingsButton.trailingAnchor.constraint(equalTo: self.view.trailingAnchor, constant: -50) // 右侧边距
         ])
+
     }
 
     func checkInstallPermission() -> Bool {
@@ -127,17 +132,71 @@ class RootViewController: UIViewController {
     }
 
     @objc func onClickRebootButton() {
-        let deviceController = DeviceController()
-        deviceController.rebootDevice()
+        
+        if settingsUtils.getShowAlertBeforeAction() {
+            // 创建 UIAlertController
+            let alertController = UIAlertController(title: nil, message: String.localizedStringWithFormat(NSLocalizedString("Action_Alert", comment: ""), NSLocalizedString("Reboot_Device_text", comment: "")), preferredStyle: .alert)
+            
+            // 创建 "确定" 按钮（红色）
+            let confirmAction = UIAlertAction(title: NSLocalizedString("Confirm_text", comment: ""), style: .destructive) { _ in
+                let deviceController = DeviceController()
+                deviceController.rebootDevice()
+            }
+            
+            // 创建 "取消" 按钮
+            let cancelAction = UIAlertAction(title: NSLocalizedString("Cancel_text", comment: ""), style: .cancel) { _ in
+                //
+            }
+            
+            // 添加按钮到 UIAlertController
+            alertController.addAction(confirmAction)
+            alertController.addAction(cancelAction)
+            
+            // 显示弹窗
+            self.present(alertController, animated: true, completion: nil)
+        } else {
+            let deviceController = DeviceController()
+            deviceController.rebootDevice()
+        }
+        
     }
     
     @objc func onClickRespringButton() {
-        let deviceController = DeviceController()
-        deviceController.respring()
+        
+        if settingsUtils.getShowAlertBeforeAction() {
+            // 创建 UIAlertController
+            let alertController = UIAlertController(title: nil, message: String.localizedStringWithFormat(NSLocalizedString("Action_Alert", comment: ""), NSLocalizedString("Respring_text", comment: "")), preferredStyle: .alert)
+            
+            // 创建 "确定" 按钮（红色）
+            let confirmAction = UIAlertAction(title: NSLocalizedString("Confirm_text", comment: ""), style: .destructive) { _ in
+                let deviceController = DeviceController()
+                deviceController.respring()
+            }
+            
+            // 创建 "取消" 按钮
+            let cancelAction = UIAlertAction(title: NSLocalizedString("Cancel_text", comment: ""), style: .cancel) { _ in
+                //
+            }
+            
+            // 添加按钮到 UIAlertController
+            alertController.addAction(confirmAction)
+            alertController.addAction(cancelAction)
+            
+            // 显示弹窗
+            self.present(alertController, animated: true, completion: nil)
+        } else {
+            let deviceController = DeviceController()
+            deviceController.respring()
+        }
+        
     }
 
     @objc func onClickSettingsButton() {
 		let settingsViewController = SettingsViewController()
+        // 注册监听器
+        settingsViewController.onSettingsChanged = { [weak self] in
+            self?.updateUI()
+        }
         // 嵌入到导航控制器
         let navController = UINavigationController(rootViewController: settingsViewController)
         // 设置导航栏完成按钮
@@ -155,6 +214,11 @@ class RootViewController: UIViewController {
 	@objc func onClickDoneButton() {
         // 关闭模态视图
         dismiss(animated: true, completion: nil)
+    }
+    
+    private func updateUI() { // 因为设置更改 更新界面
+        checkPermissionLabel.isHidden = !settingsUtils.getShowRootText()
+        respringButton.isHidden = !settingsUtils.getEnableRespringFunction()
     }
 }
 

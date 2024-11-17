@@ -7,7 +7,7 @@ include $(THEOS)/makefiles/common.mk
 
 APPLICATION_NAME = RebootTools
 
-RebootTools_FILES = AppDelegate.swift RootViewController.swift SettingsViewController.swift DeviceController.m
+RebootTools_FILES = AppDelegate.swift RootViewController.swift SettingsViewController.swift DeviceController.m PlistManagerUtils.swift SettingsUtils.swift
 RebootTools_FRAMEWORKS = UIKit CoreGraphics
 RebootTools_RESOURCES = Resources/Assets.xcassets
 $(APPLICATION_NAME)_SWIFT_BRIDGING_HEADER += $(APPLICATION_NAME)-Bridging-Header.h

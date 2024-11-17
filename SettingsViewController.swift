@@ -2,9 +2,12 @@ import UIKit
 
 class SettingsViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
 
+    var onSettingsChanged: (() -> Void)? // 一个回调
+    
     let tableView = UITableView(frame: .zero, style: .insetGrouped)
     let options = [NSLocalizedString("Reboot_Device_text", comment: ""), NSLocalizedString("Respring_text", comment: "")]
     var selectedOption: String = NSLocalizedString("Reboot_Device_text", comment: "") // 默认选项
+    private let settingsUtils = SettingsUtils.instance
 
     // 每个分组的小标题
     let sectionTitles = [
@@ -22,10 +25,15 @@ class SettingsViewController: UIViewController, UITableViewDelegate, UITableView
 //        [String(localized: "Version_text"),"Github"]
         [NSLocalizedString("Version_text", comment: ""),"GitHub", NSLocalizedString("Special_Thanks_text", comment: "")]
     ]
-
-    // UserDefaults 键
-    let warningKey = "showWarningBeforeAction"
-    let hidePermissionsKey = "hidePermissionReminder"
+    
+    enum SwitchTag: Int {
+        case ShowAlertBeforeAction = 0
+        case ShowRootText = 1
+        case RespringFunction = 2
+        case HomeQuickAction = 3
+        case EnableAction = 4
+        case OpenApplicationAction = 5
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -74,24 +82,33 @@ class SettingsViewController: UIViewController, UITableViewDelegate, UITableView
         	case 0, 1:
 				// 创建 UISwitch 控件
                 let switchView = UISwitch(frame: .zero)
-                switchView.tag = indexPath.section
                 switchView.addTarget(self, action: #selector(self.switchChanged(_:)), for: .valueChanged)
                 // 根据不同的设置项初始化开关状态
                 if indexPath.section == 0 {
-                    switchView.isOn = UserDefaults.standard.bool(forKey: self.warningKey)
+                    if indexPath.row == 0 {
+                        switchView.tag = SwitchTag.ShowAlertBeforeAction.rawValue
+                        switchView.isOn = settingsUtils.getShowAlertBeforeAction()
+                    } else if indexPath.row == 1 {
+                        switchView.tag = SwitchTag.ShowRootText.rawValue
+                        switchView.isOn = settingsUtils.getShowRootText()
+                    }
                 } else if indexPath.section == 1 {
                     if indexPath.row == 0 {
-                        switchView.isOn = UserDefaults.standard.bool(forKey: self.hidePermissionsKey)
+                        switchView.tag = SwitchTag.RespringFunction.rawValue
+                        switchView.isOn = settingsUtils.getEnableRespringFunction()
+                    } else if indexPath.row == 1 {
+                        switchView.tag = SwitchTag.HomeQuickAction.rawValue
+                        switchView.isOn = settingsUtils.getHomeQuickAction()
                     }
                 }
 
                 cell.accessoryView = switchView
             case 2: // 倒计时器的设置
-            	if indexPath.row == 0 || indexPath.row == 3 { // Enable
+            	if indexPath.row == 0 { // Enable
 					let switchView = UISwitch(frame: .zero)
-					switchView.tag = indexPath.section
+                    switchView.tag = SwitchTag.EnableAction.rawValue
 					switchView.addTarget(self, action: #selector(self.switchChanged(_:)), for: .valueChanged)
-					switchView.isOn = UserDefaults.standard.bool(forKey: "enableTimer")
+					switchView.isOn = settingsUtils.getEnableAction()
 					cell.accessoryView = switchView
 				} else if indexPath.row == 1 { // 设置时间
 					// 添加 UIStepper
@@ -113,7 +130,13 @@ class SettingsViewController: UIViewController, UITableViewDelegate, UITableView
 					cell.textLabel?.text = sections[indexPath.section][indexPath.row]
 					cell.detailTextLabel?.text = selectedOption // 显示当前选中的选项
                     cell.accessoryType = .disclosureIndicator // 添加右侧箭头
-				}
+                } else if indexPath.row == 3 {
+                    let switchView = UISwitch(frame: .zero)
+                    switchView.tag = SwitchTag.OpenApplicationAction.rawValue
+                    switchView.addTarget(self, action: #selector(self.switchChanged(_:)), for: .valueChanged)
+                    switchView.isOn = settingsUtils.getOpenApplicationAction()
+                    cell.accessoryView = switchView
+                }
             case 3:
             	if indexPath.row == 0 {
             	    cell = UITableViewCell(style: .value1, reuseIdentifier: "cell")
@@ -136,14 +159,25 @@ class SettingsViewController: UIViewController, UITableViewDelegate, UITableView
 
     // MARK: - UISwitch 事件处理
     @objc func switchChanged(_ sender: UISwitch) {
-        if sender.tag == 0 {
-            // 第一个设置项：执行操作前发出警告
-            UserDefaults.standard.set(sender.isOn, forKey: warningKey)
-        } else if sender.tag == 1 {
-            // 第二个设置项：隐藏权限提醒
-            UserDefaults.standard.set(sender.isOn, forKey: hidePermissionsKey)
+        
+        guard let switchTag = SwitchTag(rawValue: sender.tag) else {
+            return
         }
-        UserDefaults.standard.synchronize()  // 同步存储
+        
+        switch switchTag {
+        case SwitchTag.ShowAlertBeforeAction:
+            settingsUtils.setShowAlertBeforeAction(value: sender.isOn)
+        case SwitchTag.ShowRootText:
+            settingsUtils.setShowRootText(value: sender.isOn)
+        case SwitchTag.RespringFunction:
+            settingsUtils.setEnableRespringFunction(value: sender.isOn)
+        case SwitchTag.HomeQuickAction:
+            settingsUtils.setHomeQuickAction(value: sender.isOn)
+        case SwitchTag.EnableAction:
+            settingsUtils.setEnableAction(value: sender.isOn)
+        case SwitchTag.OpenApplicationAction:
+            settingsUtils.setOpenApplicationAction(value: sender.isOn)
+        }
     }
 
     @objc func stepperValueChanged(_ sender: UIStepper) {
@@ -201,5 +235,11 @@ class SettingsViewController: UIViewController, UITableViewDelegate, UITableView
 
     func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
         return nil  // 可以为分组设置尾部文本，如果没有尾部可以返回 nil
+    }
+    
+    // 界面关闭的时候让主界面知道设置改变了
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        onSettingsChanged?()
     }
 }
