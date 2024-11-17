@@ -20,6 +20,9 @@ class RootViewController: UIViewController {
             let appIcon = UIImage(named: "AppIcon")
             iconImageView.image = appIcon
         }
+        // 无障碍标签
+        iconImageView.isAccessibilityElement = true // 声明这是一个可访问性元素
+        iconImageView.accessibilityLabel = NSLocalizedString("CFBundleDisplayName", comment: "")
 
         // 禁用自动调整大小
         iconImageView.translatesAutoresizingMaskIntoConstraints = false

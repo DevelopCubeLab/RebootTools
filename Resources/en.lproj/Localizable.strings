@@ -5,6 +5,7 @@
 "Respring_text" = "Respring";
 "Settings_text" = "Settings";
 "Done_text" = "Done";
+"Cancel_text" = "Cancel";
 "General_text" = "General";
 "Timer_text" = "Timer";
 "About_text" = "About";
@@ -13,7 +14,11 @@
 "Display_Root_Permission_text" = "Show root permission has been obtained text";
 "Enable_text" = "Enable";
 "Time_text" = "Time";
+"Seconds_text" = "%d seconds";
 "Action_text" = "Action";
+"Choose_An_Action_text" = "Choose an action";
+"When_Open_Application_To_Action_text" = "Automatically perform operations when launching the Application";
 "Show_Alert_Before_Starting_text" = "Show alert before starting";
 "Version_text" = "Version";
 "Unknown_text" = "Unknown";
+"Special_Thanks_text" = "Special thanks to Xiaobovlog\nProvides core code for reboot";
