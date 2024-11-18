@@ -2,6 +2,9 @@ import UIKit
 
 class RootViewController: UIViewController {
 
+    // 定义一个闭包（接口）当桌面快捷方式被点击的时候调用
+    var onClickQuickAction: ((String) -> Void)?
+    
 	private let settingsUtils = SettingsUtils.instance
     private let checkPermissionLabel = UILabel()
     private let respringButton = UIButton(type: .system)
@@ -38,7 +41,7 @@ class RootViewController: UIViewController {
         checkPermissionLabel.textAlignment = .center  // 设置文本居中
         checkPermissionLabel.isHidden = !settingsUtils.getShowRootText()
 
-        let enable = self.checkInstallPermission()
+        let enable = settingsUtils.checkInstallPermission()
 
         if(enable) {
             checkPermissionLabel.text = NSLocalizedString("Install_With_TrollStore_text", comment: "")
@@ -125,10 +128,37 @@ class RootViewController: UIViewController {
 
     }
 
-    func checkInstallPermission() -> Bool {
-        let path = "/var/mobile/Library/Preferences"
-        let writeable = access(path, W_OK) == 0
-        return writeable
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        // 桌面快捷方式的回调
+        onClickQuickAction = { [weak self] actionType in
+
+            guard let quickAction = SettingsUtils.QuickActionType(rawValue: actionType) else {
+                NSLog("Invalid quick action type: \(actionType)")
+                return
+            }
+            
+            switch quickAction {
+            case .Reboot:
+                self?.onClickRebootButton()
+            case .Respring:
+                self?.onClickRespringButton()
+            case .CancelTimer:
+                self?.onClickCloseTimerQuickAction()
+            }
+        }
+        
+        // 打开app时的自动操作
+        if settingsUtils.getEnableAction() && settingsUtils.getOpenApplicationAction() {
+            let action = settingsUtils.getAction()
+            switch action {
+            case .Reboot:
+                self.onClickRebootButton()
+            case .Respring:
+                self.onClickRespringButton()
+            }
+        }
     }
 
     @objc func onClickRebootButton() {
@@ -139,8 +169,7 @@ class RootViewController: UIViewController {
             
             // 创建 "确定" 按钮（红色）
             let confirmAction = UIAlertAction(title: NSLocalizedString("Confirm_text", comment: ""), style: .destructive) { _ in
-                let deviceController = DeviceController()
-                deviceController.rebootDevice()
+                self.rebootDevice()
             }
             
             // 创建 "取消" 按钮
@@ -154,6 +183,20 @@ class RootViewController: UIViewController {
             
             // 显示弹窗
             self.present(alertController, animated: true, completion: nil)
+        } else {
+            self.rebootDevice()
+        }
+        
+    }
+    
+    private func rebootDevice() {
+        let time = settingsUtils.getTime()
+        if settingsUtils.getEnableAction() && time > 0 {
+            showCountdownAlert(actionName: NSLocalizedString("Reboot_Device_text", comment: ""), countdownSeconds: time) {
+                //计时器结束的操作
+                let deviceController = DeviceController()
+                deviceController.rebootDevice()
+            }
         } else {
             let deviceController = DeviceController()
             deviceController.rebootDevice()
@@ -169,8 +212,7 @@ class RootViewController: UIViewController {
             
             // 创建 "确定" 按钮（红色）
             let confirmAction = UIAlertAction(title: NSLocalizedString("Confirm_text", comment: ""), style: .destructive) { _ in
-                let deviceController = DeviceController()
-                deviceController.respring()
+                self.respring()
             }
             
             // 创建 "取消" 按钮
@@ -184,6 +226,20 @@ class RootViewController: UIViewController {
             
             // 显示弹窗
             self.present(alertController, animated: true, completion: nil)
+        } else {
+            self.respring()
+        }
+        
+    }
+    
+    private func respring() {
+        let time = settingsUtils.getTime()
+        if settingsUtils.getEnableAction() && time > 0 {
+            showCountdownAlert(actionName: NSLocalizedString("Respring_text", comment: ""), countdownSeconds: time) {
+                //计时器结束的操作
+                let deviceController = DeviceController()
+                deviceController.respring()
+            }
         } else {
             let deviceController = DeviceController()
             deviceController.respring()
@@ -216,9 +272,75 @@ class RootViewController: UIViewController {
         dismiss(animated: true, completion: nil)
     }
     
+    private func showCountdownAlert(actionName: String, countdownSeconds: Int, action: @escaping () -> Void) {
+        guard countdownSeconds > 0 else {
+            print("Invalid countdownSeconds: \(countdownSeconds). It should be greater than 0.")
+            return
+        }
+        
+        // 初始化倒计时变量
+        var remainingSeconds = countdownSeconds
+        var timer: Timer?
+
+        // 创建 UIAlertController
+        let alertController = UIAlertController(
+            title: String.localizedStringWithFormat(NSLocalizedString("Countdown_Title_text", comment: ""), actionName),
+            message: String.localizedStringWithFormat(NSLocalizedString("Countdown_Message_text", comment: ""), remainingSeconds),
+            preferredStyle: .alert
+        )
+        
+        // 添加取消按钮
+        let cancelAction = UIAlertAction(title: NSLocalizedString("Cancel_text", comment: ""), style: .destructive) { _ in
+            timer?.invalidate() // 停止计时器
+        }
+        alertController.addAction(cancelAction)
+        
+        // 显示弹窗
+        DispatchQueue.main.async {
+            self.present(alertController, animated: true, completion: nil)
+        }
+
+        // 创建 Timer，倒计时
+        timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
+            guard remainingSeconds > 0 else { // 确保倒计时不为负数
+                timer?.invalidate()
+                return
+            }
+            
+            remainingSeconds -= 1
+            DispatchQueue.main.async {
+                alertController.message = String.localizedStringWithFormat(NSLocalizedString("Countdown_Message_text", comment: ""), remainingSeconds)
+            }
+            
+            // 倒计时结束，执行操作
+            if remainingSeconds <= 0 {
+                timer?.invalidate() // 停止计时器
+                DispatchQueue.main.async {
+                    alertController.dismiss(animated: true, completion: nil) // 关闭弹窗
+                    action() // 执行操作
+                }
+            }
+        }
+    }
+
+    
     private func updateUI() { // 因为设置更改 更新界面
         checkPermissionLabel.isHidden = !settingsUtils.getShowRootText()
         respringButton.isHidden = !settingsUtils.getEnableRespringFunction()
+    }
+    
+    private func onClickCloseTimerQuickAction() {
+        settingsUtils.setEnableAction(value: false)
+        // 显示一个弹窗 提示用户倒计时器已被禁用
+        let alertController = UIAlertController(title: nil, message: NSLocalizedString("Timer_Closed_text", comment: ""), preferredStyle: .alert)
+        let doneAction = UIAlertAction(title: NSLocalizedString("Dismiss_text", comment: ""), style: .cancel) { _ in
+            //
+        }
+        // 添加按钮到 UIAlertController
+        alertController.addAction(doneAction)
+        // 显示弹窗
+        self.present(alertController, animated: true, completion: nil)
+        settingsUtils.configQuickActions(application: UIApplication.shared)
     }
 }
 

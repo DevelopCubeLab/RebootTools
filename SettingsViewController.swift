@@ -5,8 +5,6 @@ class SettingsViewController: UIViewController, UITableViewDelegate, UITableView
     var onSettingsChanged: (() -> Void)? // 一个回调
     
     let tableView = UITableView(frame: .zero, style: .insetGrouped)
-    let options = [NSLocalizedString("Reboot_Device_text", comment: ""), NSLocalizedString("Respring_text", comment: "")]
-    var selectedOption: String = NSLocalizedString("Reboot_Device_text", comment: "") // 默认选项
     private let settingsUtils = SettingsUtils.instance
 
     // 每个分组的小标题
@@ -21,7 +19,7 @@ class SettingsViewController: UIViewController, UITableViewDelegate, UITableView
     let sections = [
         [NSLocalizedString("Show_Alert_Before_Starting_text", comment: ""), NSLocalizedString("Display_Root_Permission_text", comment: "")],
         [NSLocalizedString("Respring_text", comment: ""), NSLocalizedString("Home_Screen_Quick_Actions_text", comment: "")],
-        [NSLocalizedString("Enable_text", comment: ""), NSLocalizedString("Time_text", comment: ""), NSLocalizedString("Action_text", comment: ""), NSLocalizedString("When_Open_Application_To_Action_text", comment: "")],
+        [NSLocalizedString("Enable_text", comment: ""), NSLocalizedString("Time_text", comment: ""), NSLocalizedString("When_Open_Application_To_Action_text", comment: ""), NSLocalizedString("Action_text", comment: "")],
 //        [String(localized: "Version_text"),"Github"]
         [NSLocalizedString("Version_text", comment: ""),"GitHub", NSLocalizedString("Special_Thanks_text", comment: "")]
     ]
@@ -114,28 +112,41 @@ class SettingsViewController: UIViewController, UITableViewDelegate, UITableView
 					// 添加 UIStepper
 					cell = UITableViewCell(style: .value1, reuseIdentifier: "cell")
 					cell.textLabel?.text = sections[indexPath.section][indexPath.row]
-					cell.detailTextLabel?.text = String.localizedStringWithFormat(NSLocalizedString("Seconds_text", comment: "Time in seconds"), 5) // 默认值
+					cell.detailTextLabel?.text = String.localizedStringWithFormat(NSLocalizedString("Seconds_text", comment: "Time in seconds"), settingsUtils.getTime()) // 默认值
                     let stepper = UIStepper()
                     stepper.minimumValue = 0 // 最小值
                     stepper.maximumValue = 15 // 最大值
-                    stepper.value = 5 // 初始值
+                    stepper.value = Double(settingsUtils.getTime()) // 初始值
                     stepper.stepValue = 1 // 每次加减步长
                     // 添加事件监听
-                    stepper.addTarget(self, action: #selector(self.stepperValueChanged(_:)), for: .valueChanged)
+                    stepper.addTarget(self, action: #selector(self.timerValueChanged(_:)), for: .valueChanged)
 
                     // 设置 UIStepper 为 cell 的 accessoryView
                     cell.accessoryView = stepper
 				} else if indexPath.row == 2 {
-					cell = UITableViewCell(style: .value1, reuseIdentifier: "cell")
-					cell.textLabel?.text = sections[indexPath.section][indexPath.row]
-					cell.detailTextLabel?.text = selectedOption // 显示当前选中的选项
-                    cell.accessoryType = .disclosureIndicator // 添加右侧箭头
-                } else if indexPath.row == 3 {
                     let switchView = UISwitch(frame: .zero)
                     switchView.tag = SwitchTag.OpenApplicationAction.rawValue
                     switchView.addTarget(self, action: #selector(self.switchChanged(_:)), for: .valueChanged)
                     switchView.isOn = settingsUtils.getOpenApplicationAction()
                     cell.accessoryView = switchView
+                } else if indexPath.row == 3 {
+                    cell = UITableViewCell(style: .value1, reuseIdentifier: "cell")
+                    if settingsUtils.getEnableRespringFunction() { // 判断是否开启了注销功能
+                        cell.accessoryType = .disclosureIndicator // 添加右侧箭头
+                    } else {
+                        cell.selectionStyle = .none
+                        cell.accessoryType = .none
+                    }
+                    cell.textLabel?.text = sections[indexPath.section][indexPath.row]
+                    cell.isUserInteractionEnabled = settingsUtils.getOpenApplicationAction()
+                    // 设置当前选择的item
+                    let action = settingsUtils.getAction()
+                    switch action {
+                    case .Reboot:
+                        cell.detailTextLabel?.text = NSLocalizedString("Reboot_Device_text", comment: "")
+                    case .Respring:
+                        cell.detailTextLabel?.text = NSLocalizedString("Respring_text", comment: "")
+                    }
                 }
             case 3:
             	if indexPath.row == 0 {
@@ -171,50 +182,70 @@ class SettingsViewController: UIViewController, UITableViewDelegate, UITableView
             settingsUtils.setShowRootText(value: sender.isOn)
         case SwitchTag.RespringFunction:
             settingsUtils.setEnableRespringFunction(value: sender.isOn)
+            // 刷新桌面快捷图标
+            settingsUtils.configQuickActions(application: UIApplication.shared)
+            // 判断执行的操作是否是Respring
+            if !settingsUtils.getEnableRespringFunction() && settingsUtils.getAction() == .Respring {
+                self.settingsUtils.setAction(value: SettingsUtils.ActionType.Reboot)// 修改默认设置
+            }
+            // 刷新执行的操作的item
+            tableView.reloadRows(at: [IndexPath(row: 3, section: 2)], with: .none)
         case SwitchTag.HomeQuickAction:
             settingsUtils.setHomeQuickAction(value: sender.isOn)
+            settingsUtils.configQuickActions(application: UIApplication.shared)
         case SwitchTag.EnableAction:
             settingsUtils.setEnableAction(value: sender.isOn)
+            settingsUtils.configQuickActions(application: UIApplication.shared)
         case SwitchTag.OpenApplicationAction:
             settingsUtils.setOpenApplicationAction(value: sender.isOn)
+            settingsUtils.configQuickActions(application: UIApplication.shared)
         }
     }
 
-    @objc func stepperValueChanged(_ sender: UIStepper) {
+    @objc func timerValueChanged(_ sender: UIStepper) {
         // 找到 UIStepper 所在的单元格
         if let cell = sender.superview as? UITableViewCell {
             // 更新 detailTextLabel 显示当前值
+            settingsUtils.setTime(value: Int(sender.value))
             cell.detailTextLabel?.text = String.localizedStringWithFormat(NSLocalizedString("Seconds_text", comment: ""), Int(sender.value))
         }
     }
 
     // MARK: - UITableViewDelegate 点击item的事件
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        if indexPath.section == 2 && indexPath.row == 2 {
-			let actionSheet = UIAlertController(title: NSLocalizedString("Choose_An_Action_text", comment: ""), message: nil, preferredStyle: .actionSheet)
-
-                    // 添加选项
-                    for option in options {
-                        let action = UIAlertAction(title: option, style: .default) { _ in
-                            self.selectedOption = option
-                            tableView.reloadRows(at: [indexPath], with: .none) // 更新单元格显示
+        if indexPath.section == 2 && indexPath.row == 3 {
+            if settingsUtils.getEnableRespringFunction() {
+                let actionSheet = UIAlertController(title: NSLocalizedString("Choose_An_Action_text", comment: ""), message: nil, preferredStyle: .actionSheet)
+                let options = [NSLocalizedString("Reboot_Device_text", comment: ""), NSLocalizedString("Respring_text", comment: "")]
+                
+                // 添加选项
+                for (index, option) in options.enumerated() {
+                    let action = UIAlertAction(title: option, style: .default) { _ in
+                        if index == 0 {
+                            self.settingsUtils.setAction(value: SettingsUtils.ActionType.Reboot)
+                        } else {
+                            self.settingsUtils.setAction(value: SettingsUtils.ActionType.Respring)
                         }
-                        actionSheet.addAction(action)
+                        tableView.reloadRows(at: [indexPath], with: .none) // 更新单元格显示
                     }
+                    actionSheet.addAction(action)
+                }
 
-                    // 添加取消按钮
-                    let cancelAction = UIAlertAction(title: NSLocalizedString("Cancel_text", comment: ""), style: .cancel, handler: nil)
-                    actionSheet.addAction(cancelAction)
+                // 添加取消按钮
+                let cancelAction = UIAlertAction(title: NSLocalizedString("Cancel_text", comment: ""), style: .cancel, handler: nil)
+                actionSheet.addAction(cancelAction)
 
-                    // 显示弹窗
-                    if let popover = actionSheet.popoverPresentationController {
-                        // 处理 iPad 的情况
-                        popover.sourceView = tableView
-                        popover.sourceRect = tableView.rectForRow(at: indexPath)
-                        popover.permittedArrowDirections = .any
-                    }
+                // 显示弹窗
+                if let popover = actionSheet.popoverPresentationController {
+                    // 处理 iPad 的情况
+                    popover.sourceView = tableView
+                    popover.sourceRect = tableView.rectForRow(at: indexPath)
+                    popover.permittedArrowDirections = .any
+                }
 
-                    present(actionSheet, animated: true, completion: nil)
+                present(actionSheet, animated: true, completion: nil)
+            }
+            
 		} else if indexPath.section == 3 && indexPath.row == 1 {
     		tableView.deselectRow(at: indexPath, animated: true)
     	    if let url = URL(string: "https://github.com/DevelopCubeLab/RebootTools") {

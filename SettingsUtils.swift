@@ -1,3 +1,4 @@
+import UIKit
 
 class SettingsUtils {
 	// 单例实例
@@ -7,9 +8,15 @@ class SettingsUtils {
     private let plistManager: PlistManagerUtils
     
     // 操作的枚举
-    enum ActionType: Int {// 1=重启 2=注销
-        case Reboot = 1
-        case Respring = 2
+    enum ActionType: Int { // 0=重启 1=注销
+        case Reboot = 0
+        case Respring = 1
+    }
+    
+    enum QuickActionType: String {
+        case Reboot = "com.developLab.RebootTools.Reboot"
+        case Respring = "com.developLab.RebootTools.Respring"
+        case CancelTimer = "com.developLab.RebootTools.CancelTimer"
     }
 
     // 私有初始化方法
@@ -80,7 +87,7 @@ class SettingsUtils {
     }
     
     func getEnableAction() -> Bool {
-        return self.plistManager.getBool(key: "EnableAction", defaultValue: true)
+        return self.plistManager.getBool(key: "EnableAction", defaultValue: false)
     }
 
     func setEnableAction(value: Bool) {
@@ -89,7 +96,7 @@ class SettingsUtils {
     }
     
     func getTime() -> Int {
-        var value = self.plistManager.getInt(key: "EnableAction", defaultValue: 5)
+        var value = self.plistManager.getInt(key: "Time", defaultValue: 5)
         if value < 0 {
             value = 0
         }
@@ -107,13 +114,18 @@ class SettingsUtils {
         if time > 15 {
             time = 15
         }
-        self.plistManager.setInt(key: "EnableAction", value: time)
+        self.plistManager.setInt(key: "Time", value: time)
         self.plistManager.apply()
     }
     
     func getAction() -> ActionType {
         let action = self.plistManager.getInt(key: "Action", defaultValue: ActionType.Reboot.rawValue)
         return ActionType(rawValue: action) ?? .Reboot
+    }
+
+    func setAction(value: ActionType) {
+        self.plistManager.setInt(key: "Action", value: value.rawValue)
+        self.plistManager.apply()
     }
     
     func getOpenApplicationAction() -> Bool {
@@ -123,6 +135,57 @@ class SettingsUtils {
     func setOpenApplicationAction(value: Bool) {
         self.plistManager.setBool(key: "OpenApplicationAction", value: value)
         self.plistManager.apply()
+    }
+    
+    // 检查Root权限的方法
+    func checkInstallPermission() -> Bool {
+        let path = "/var/mobile/Library/Preferences"
+        let writeable = access(path, W_OK) == 0
+        return writeable
+    }
+
+    // 配置桌面快捷方式
+    func configQuickActions(application: UIApplication) {
+        
+        // Action的数组
+        var currentShortcuts: [UIApplicationShortcutItem] = []
+        if getHomeQuickAction() {
+            
+            let rebootAction = UIApplicationShortcutItem(
+                type: SettingsUtils.QuickActionType.Reboot.rawValue,
+                localizedTitle: NSLocalizedString("Reboot_Device_text", comment: ""),
+                localizedSubtitle: nil,
+                icon: UIApplicationShortcutIcon(systemImageName: "arrow.clockwise"),
+                userInfo: nil
+            )
+            currentShortcuts.append(rebootAction)
+            
+            if getEnableRespringFunction() {
+                let respringAction = UIApplicationShortcutItem(
+                    type: SettingsUtils.QuickActionType.Respring.rawValue,
+                    localizedTitle: NSLocalizedString("Respring_text", comment: ""),
+                    localizedSubtitle: nil,
+                    icon: UIApplicationShortcutIcon(systemImageName: "r.square.on.square"),
+                    userInfo: nil
+                )
+                currentShortcuts.append(respringAction)
+            }
+            
+        }
+        
+        if getEnableAction() && getOpenApplicationAction() {
+            let cancelTimerAction = UIApplicationShortcutItem(
+                type: SettingsUtils.QuickActionType.CancelTimer.rawValue,
+                localizedTitle: NSLocalizedString("Cancel_Timer_text", comment: ""),
+                localizedSubtitle: nil,
+                icon: UIApplicationShortcutIcon(systemImageName: "xmark.circle"),
+                userInfo: nil
+            )
+            currentShortcuts.append(cancelTimerAction)
+        }
+        
+        UIApplication.shared.shortcutItems = currentShortcuts
+        
     }
 
 }
