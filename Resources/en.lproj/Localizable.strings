@@ -5,9 +5,12 @@
 "Respring_text" = "Respring";
 "Settings_text" = "Settings";
 "Done_text" = "Done";
+"Dismiss_text" = "Dismiss";
 "Action_Alert" = "Are you sure you want to %@?";
 "Confirm_text" = "Confirm";
 "Cancel_text" = "Cancel";
+"Cancel_Timer_text" = "Disable timer";
+"Timer_Closed_text" = "The timer has been turned off.\nYou can reopen it in Settings";
 "General_text" = "General";
 "Timer_text" = "Timer";
 "About_text" = "About";
@@ -21,6 +24,9 @@
 "Choose_An_Action_text" = "Choose an action";
 "When_Open_Application_To_Action_text" = "Automatically perform operations when launching the Application";
 "Show_Alert_Before_Starting_text" = "Show alert before starting";
+"Countdown_Title_text" = "Countdown for %@";
+"Countdown_Message_text" = "%d seconds remaining";
+"Timer_Alert_text" = "TODO";
 "Version_text" = "Version";
 "Unknown_text" = "Unknown";
 "Special_Thanks_text" = "Special thanks to Xiaobovlog\nProvides core code for reboot";

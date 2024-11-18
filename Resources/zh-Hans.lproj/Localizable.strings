@@ -5,9 +5,12 @@
 "Respring_text" = "注销";
 "Settings_text" = "设置";
 "Done_text" = "完成";
+"Dismiss_text" = "关闭";
 "Action_Alert" = "确定%@?";
 "Confirm_text" = "确定";
 "Cancel_text" = "取消";
+"Cancel_Timer_text" = "禁用倒计时器";
+"Timer_Closed_text" = "倒计时器已被禁用\n可以在设置中重新启用";
 "General_text" = "通用";
 "Timer_text" = "倒计时器";
 "About_text" = "关于";
@@ -21,6 +24,9 @@
 "Choose_An_Action_text" = "选择一个操作";
 "When_Open_Application_To_Action_text" = "启动App时自动进行操作";
 "Show_Alert_Before_Starting_text" = "开始操作前显示提醒";
+"Countdown_Title_text" = "即将进行%@";
+"Countdown_Message_text" = "剩余%d秒";
+"Timer_Alert_text" = "TODO";
 "Version_text" = "版本";
 "Unknown_text" = "未知";
 "Special_Thanks_text" = "特别感谢肖博vlog\n提供重启设备核心代码";
