@@ -26,7 +26,8 @@
 "Show_Alert_Before_Starting_text" = "Show alert before starting";
 "Countdown_Title_text" = "Countdown for %@";
 "Countdown_Message_text" = "%d seconds remaining";
-"Timer_Alert_text" = "TODO";
+"Automatic_Timer_Alert_text" = "The current selection will immediately automatically execute the operation you choose when the Application is opened next time, with no any alert.\nIf you want to disable it, you can long press the application icon to use %@ %@";
+"Automatically_Action_hint" = "'%@' and '%@' can not enable together.";
 "Version_text" = "Version";
 "Unknown_text" = "Unknown";
 "Special_Thanks_text" = "Special thanks to Xiaobovlog\nProvides core code for reboot";
