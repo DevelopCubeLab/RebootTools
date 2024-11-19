@@ -26,7 +26,8 @@
 "Show_Alert_Before_Starting_text" = "开始操作前显示提醒";
 "Countdown_Title_text" = "即将进行%@";
 "Countdown_Message_text" = "剩余%d秒";
-"Timer_Alert_text" = "TODO";
+"Automatic_Timer_Alert_text" = "当前的选择在下一次打开App时会立即自动执行您选择的操作，没有任何提示\n如果需要关闭可以长按图标使用%@%@";
+"Automatically_Action_hint" = "'%@'和'%@'无法同时开启";
 "Version_text" = "版本";
 "Unknown_text" = "未知";
 "Special_Thanks_text" = "特别感谢肖博vlog\n提供重启设备核心代码";

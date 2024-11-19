@@ -39,13 +39,13 @@ class RootViewController: UIViewController {
         // 检查权限
         checkPermissionLabel.translatesAutoresizingMaskIntoConstraints = false
         checkPermissionLabel.textAlignment = .center  // 设置文本居中
-        checkPermissionLabel.isHidden = !settingsUtils.getShowRootText()
 
         let enable = settingsUtils.checkInstallPermission()
 
         if(enable) {
             checkPermissionLabel.text = NSLocalizedString("Install_With_TrollStore_text", comment: "")
             checkPermissionLabel.textColor = UIColor.green
+            checkPermissionLabel.isHidden = !settingsUtils.getShowRootText()
         } else {
             checkPermissionLabel.text = NSLocalizedString("Need_Install_With_TrollStore_text", comment: "")
             checkPermissionLabel.textColor = UIColor.red
@@ -63,6 +63,11 @@ class RootViewController: UIViewController {
             rebootButton.clipsToBounds = true
             rebootButton.setTitle(NSLocalizedString("Reboot_Device_text", comment: ""), for: .normal)
             rebootButton.setTitleColor(.white, for: .normal)
+            if !enable {
+                // 禁用状态按钮的样子 照顾一下iOS14 用户 但是又没权限的情况，貌似基本不存在
+                rebootButton.backgroundColor = UIColor.lightGray
+                rebootButton.setTitleColor(.darkGray, for: .normal)
+            }
 		}
 
         rebootButton.translatesAutoresizingMaskIntoConstraints = false
@@ -333,11 +338,11 @@ class RootViewController: UIViewController {
         settingsUtils.setEnableAction(value: false)
         // 显示一个弹窗 提示用户倒计时器已被禁用
         let alertController = UIAlertController(title: nil, message: NSLocalizedString("Timer_Closed_text", comment: ""), preferredStyle: .alert)
-        let doneAction = UIAlertAction(title: NSLocalizedString("Dismiss_text", comment: ""), style: .cancel) { _ in
+        let dismissAction = UIAlertAction(title: NSLocalizedString("Dismiss_text", comment: ""), style: .cancel) { _ in
             //
         }
         // 添加按钮到 UIAlertController
-        alertController.addAction(doneAction)
+        alertController.addAction(dismissAction)
         // 显示弹窗
         self.present(alertController, animated: true, completion: nil)
         settingsUtils.configQuickActions(application: UIApplication.shared)
