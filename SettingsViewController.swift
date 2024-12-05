@@ -4,7 +4,7 @@ class SettingsViewController: UIViewController, UITableViewDelegate, UITableView
 
     var onSettingsChanged: (() -> Void)? // 一个回调
     
-    let tableView = UITableView(frame: .zero, style: .insetGrouped)
+    var tableView = UITableView(frame: .zero, style: .insetGrouped)
     private let settingsUtils = SettingsUtils.instance
     private var hasRootPermission = false //用于存储是否是有Root权限
 
@@ -41,6 +41,13 @@ class SettingsViewController: UIViewController, UITableViewDelegate, UITableView
         self.title = NSLocalizedString("Settings_text", comment: "")
         // 检查Root权限
         hasRootPermission = settingsUtils.checkInstallPermission()
+
+		// iOS 15 之后的版本使用新的UITableView样式
+		if #available(iOS 15.0, *) {
+			tableView = UITableView(frame: .zero, style: .insetGrouped)
+		} else {
+			tableView = UITableView(frame: .zero, style: .grouped)
+		}
 
         // 设置表格视图的代理和数据源
         tableView.delegate = self
