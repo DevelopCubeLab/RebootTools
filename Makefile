@@ -1,6 +1,10 @@
 TARGET = iOS
 ARCHS := arm64
 TARGET = iphone:clang:latest:14.0
+
+# TARGET = simulator:clang:latest:14.0
+# ARCHS = x86_64 arm64
+
 INSTALL_TARGET_PROCESSES = RebootTools
 
 include $(THEOS)/makefiles/common.mk
