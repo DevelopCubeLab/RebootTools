@@ -2,6 +2,7 @@ import UIKit
 
 class SettingsViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
 
+	let versionCode = "1.2"
     var onSettingsChanged: (() -> Void)? // 一个回调
     
     var tableView = UITableView(frame: .zero, style: .insetGrouped)
@@ -226,7 +227,11 @@ class SettingsViewController: UIViewController, UITableViewDelegate, UITableView
             	    cell = UITableViewCell(style: .value1, reuseIdentifier: "cell")
             	    cell.textLabel?.text = sections[indexPath.section][indexPath.row]
 					let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? NSLocalizedString("Unknown_text", comment: "")
-                    cell.detailTextLabel?.text = version
+					if version != versionCode { // 判断版本号是不是有人篡改
+						cell.detailTextLabel?.text = versionCode
+					} else {
+						cell.detailTextLabel?.text = version
+					}
                     cell.selectionStyle = .none
                     cell.accessoryType = .none
 				} else if indexPath.row == 1 || indexPath.row == 2 {
